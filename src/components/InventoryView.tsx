@@ -5,6 +5,7 @@ import { ItemThumb } from "./ItemThumb";
 import { Plus, Pencil, Trash2, Camera, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadItemImage, deleteItemImage } from "@/lib/storage";
+import { useLang } from "@/context/LangContext";
 
 export function InventoryView({
   inventory,
@@ -13,6 +14,7 @@ export function InventoryView({
   inventory: InventoryItem[];
   setInventory: (next: InventoryItem[]) => void;
 }) {
+  const { t } = useLang();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [adding, setAdding] = useState(false);
   const [confirmDel, setConfirmDel] = useState<InventoryItem | null>(null);
@@ -20,10 +22,10 @@ export function InventoryView({
   const onSave = (item: InventoryItem) => {
     if (inventory.some((i) => i.id === item.id)) {
       setInventory(inventory.map((i) => (i.id === item.id ? item : i)));
-      toast.success("Item updated");
+      toast.success(t.itemUpdated);
     } else {
       setInventory([item, ...inventory]);
-      toast.success("Item added");
+      toast.success(t.itemAdded);
     }
     setEditing(null);
     setAdding(false);
@@ -31,7 +33,7 @@ export function InventoryView({
 
   const onDelete = (item: InventoryItem) => {
     setInventory(inventory.filter((i) => i.id !== item.id));
-    toast.success(`Deleted "${item.name}"`);
+    toast.success(t.deleted(item.name));
     setConfirmDel(null);
   };
 
@@ -42,13 +44,13 @@ export function InventoryView({
         className="w-full h-12 rounded-xl bg-brand text-brand-foreground font-bold text-sm
                    hover:bg-brand/90 active:scale-[0.99] transition flex items-center justify-center gap-2 shadow-card"
       >
-        <Plus className="h-4 w-4" /> Add New Item
+        <Plus className="h-4 w-4" /> {t.addNewItem}
       </button>
 
       <div className="mt-4 qb-card divide-y divide-border">
         {inventory.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">
-            No items yet. Add your first product above.
+            {t.noInventoryYet}
           </div>
         ) : (
           inventory.map((it) => (
@@ -82,19 +84,16 @@ export function InventoryView({
       {(adding || editing) && (
         <ItemSheet
           initial={editing}
-          onClose={() => {
-            setAdding(false);
-            setEditing(null);
-          }}
+          onClose={() => { setAdding(false); setEditing(null); }}
           onSave={onSave}
         />
       )}
 
       {confirmDel && (
         <ConfirmDialog
-          title="Delete item?"
-          message={`"${confirmDel.name}" will be permanently removed from your inventory.`}
-          confirmLabel="Delete"
+          title={t.deleteItemTitle}
+          message={t.deleteItemMessage(confirmDel.name)}
+          confirmLabel={t.delete}
           danger
           onCancel={() => setConfirmDel(null)}
           onConfirm={() => onDelete(confirmDel)}
@@ -113,6 +112,7 @@ function ItemSheet({
   onClose: () => void;
   onSave: (i: InventoryItem) => void;
 }) {
+  const { t } = useLang();
   const [name, setName] = useState(initial?.name ?? "");
   const [price, setPrice] = useState<string>(initial?.price?.toString() ?? "");
   const [unit, setUnit] = useState(initial?.unit ?? "");
@@ -122,7 +122,7 @@ function ItemSheet({
 
   const onPick = async (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5 MB");
+      toast.error(t.imageTooLarge);
       return;
     }
     try {
@@ -131,24 +131,22 @@ function ItemSheet({
       setImg(url);
     } catch (err) {
       console.error("Upload failed:", err);
-      toast.error("Image upload failed");
+      toast.error(t.imageUploadFailed);
     } finally {
       setUploading(false);
     }
   };
 
   const removeImage = async () => {
-    if (img) {
-      await deleteItemImage(img);
-    }
+    if (img) await deleteItemImage(img);
     setImg(undefined);
   };
 
   const submit = () => {
-    if (!name.trim()) return toast.error("Name is required");
+    if (!name.trim()) return toast.error(t.nameRequired);
     const p = parseFloat(price);
-    if (isNaN(p) || p <= 0) return toast.error("Enter a valid price");
-    if (!unit.trim()) return toast.error("Unit is required");
+    if (isNaN(p) || p <= 0) return toast.error(t.validPrice);
+    if (!unit.trim()) return toast.error(t.unitRequired);
     onSave({
       id: initial?.id ?? uid(),
       name: name.trim(),
@@ -164,7 +162,7 @@ function ItemSheet({
       <div className="relative w-full max-h-[90vh] overflow-y-auto bg-card rounded-t-3xl p-5 pb-7 animate-slide-up">
         <div className="mx-auto h-1.5 w-12 rounded-full bg-border mb-4" />
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">{initial ? "Edit Item" : "Add New Item"}</h3>
+          <h3 className="text-lg font-bold">{initial ? t.editItem : t.addNewItem}</h3>
           <button
             onClick={onClose}
             className="h-9 w-9 grid place-items-center rounded-lg hover:bg-muted transition"
@@ -174,7 +172,6 @@ function ItemSheet({
           </button>
         </div>
 
-        {/* Image upload */}
         <div className="flex flex-col items-center gap-2 mb-5">
           <input
             ref={fileRef}
@@ -186,7 +183,7 @@ function ItemSheet({
           {uploading ? (
             <div className="h-32 w-32 rounded-xl border-2 border-dashed border-primary bg-accent flex flex-col items-center justify-center gap-1.5">
               <Loader2 className="h-7 w-7 animate-spin text-primary" />
-              <span className="text-xs font-medium text-primary">Uploading…</span>
+              <span className="text-xs font-medium text-primary">{t.uploading}</span>
             </div>
           ) : img ? (
             <>
@@ -197,10 +194,10 @@ function ItemSheet({
               />
               <div className="flex gap-3 text-xs">
                 <button onClick={() => fileRef.current?.click()} className="text-primary font-semibold hover:underline">
-                  Change
+                  {t.change}
                 </button>
                 <button onClick={removeImage} className="text-destructive font-semibold hover:underline">
-                  Remove
+                  {t.remove}
                 </button>
               </div>
             </>
@@ -212,22 +209,22 @@ function ItemSheet({
                          flex flex-col items-center justify-center gap-1.5"
             >
               <Camera className="h-7 w-7" />
-              <span className="text-xs font-medium">Tap to upload</span>
+              <span className="text-xs font-medium">{t.tapToUpload}</span>
             </button>
           )}
         </div>
 
         <div className="space-y-3">
-          <Field label="Item Name">
+          <Field label={t.itemName}>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Sugar"
+              placeholder={t.itemNamePlaceholder}
               className="qb-input"
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Price (₹)">
+            <Field label={t.price}>
               <input
                 type="number"
                 inputMode="decimal"
@@ -237,11 +234,11 @@ function ItemSheet({
                 className="qb-input font-mono"
               />
             </Field>
-            <Field label="Unit">
+            <Field label={t.unit}>
               <input
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                placeholder="kg, pcs, L…"
+                placeholder={t.unitPlaceholder}
                 className="qb-input"
               />
             </Field>
@@ -253,13 +250,13 @@ function ItemSheet({
             onClick={onClose}
             className="flex-1 h-11 rounded-xl border border-border text-foreground text-sm font-semibold hover:bg-muted transition"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             onClick={submit}
             className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary-hover active:scale-[0.98] transition shadow-md"
           >
-            Save
+            {t.save}
           </button>
         </div>
 
@@ -295,6 +292,7 @@ export function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useLang();
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center p-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/60" onClick={onCancel} />
@@ -306,7 +304,7 @@ export function ConfirmDialog({
             onClick={onCancel}
             className="flex-1 h-10 rounded-lg border border-border text-sm font-semibold hover:bg-muted transition"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             onClick={onConfirm}
