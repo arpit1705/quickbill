@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { formatINR } from "@/lib/format";
+import { useLang } from "@/context/LangContext";
 
 interface QtyEditModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ export function QtyEditModal({
   onSave,
   onClose,
 }: QtyEditModalProps) {
+  const { t } = useLang();
   const [mode, setMode] = useState<"qty" | "price">("qty");
   const [qtyStr, setQtyStr] = useState("");
   const [priceStr, setPriceStr] = useState("");
@@ -98,7 +100,7 @@ export function QtyEditModal({
         </div>
 
         <p className="text-xs text-muted-foreground font-mono mb-4">
-          Unit price: ₹{unitPrice}/{unit}
+          {t.unitPrice(unitPrice, unit)}
         </p>
 
         <div className="flex gap-2 mb-4">
@@ -113,7 +115,7 @@ export function QtyEditModal({
                 : "bg-accent text-foreground hover:bg-accent/80"
             }`}
           >
-            Enter Qty
+            {t.enterQty}
           </button>
           <button
             onClick={() => {
@@ -126,14 +128,14 @@ export function QtyEditModal({
                 : "bg-accent text-foreground hover:bg-accent/80"
             }`}
           >
-            Enter Price
+            {t.enterPrice}
           </button>
         </div>
 
         {mode === "qty" ? (
           <div className="space-y-1 mb-4">
             <label className="text-xs font-medium text-muted-foreground">
-              Quantity ({unit})
+              {t.quantityLabel(unit)}
             </label>
             <input
               ref={inputRef}
@@ -146,13 +148,13 @@ export function QtyEditModal({
                          text-center focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
             />
             <p className="text-xs text-muted-foreground text-right font-mono mt-1">
-              Total: {formatINR(derivedTotal)}
+              {t.totalLabel(formatINR(derivedTotal))}
             </p>
           </div>
         ) : (
           <div className="space-y-1 mb-4">
             <label className="text-xs font-medium text-muted-foreground">
-              Final Price (₹)
+              {t.finalPrice}
             </label>
             <input
               ref={inputRef}
@@ -165,22 +167,25 @@ export function QtyEditModal({
                          text-center focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
             />
             <p className="text-xs text-muted-foreground text-right font-mono mt-1">
-              Qty: {derivedQty > 0
-                ? `${parseFloat(derivedQty.toFixed(4))} ${unit}`
-                : `0 ${unit}`}
+              {t.qtyLabel(
+                derivedQty > 0
+                  ? String(parseFloat(derivedQty.toFixed(4)))
+                  : "0",
+                unit
+              )}
             </p>
           </div>
         )}
 
         <div className="bg-accent rounded-xl p-3 mb-4">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Quantity</span>
+            <span className="text-muted-foreground">{t.quantity}</span>
             <span className="font-mono font-semibold">
               {displayQty > 0 ? parseFloat(displayQty.toFixed(4)) : 0} {unit}
             </span>
           </div>
           <div className="flex justify-between text-sm mt-1">
-            <span className="text-muted-foreground">Total</span>
+            <span className="text-muted-foreground">{t.total}</span>
             <span className="font-mono font-semibold">{formatINR(displayTotal)}</span>
           </div>
         </div>
@@ -191,7 +196,7 @@ export function QtyEditModal({
           className="w-full h-11 rounded-xl bg-primary text-primary-foreground text-sm font-bold
                      hover:bg-primary-hover active:scale-[0.97] disabled:opacity-50 transition"
         >
-          Update
+          {t.update}
         </button>
       </div>
     </div>

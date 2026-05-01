@@ -3,7 +3,7 @@ import { Bill } from "@/lib/types";
 import { formatINR, formatDateIN } from "@/lib/format";
 import { ItemThumb } from "./ItemThumb";
 import { Receipt, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useLang } from "@/context/LangContext";
 
 type Range = "today" | "week" | "month" | "all";
 
@@ -19,6 +19,7 @@ const inRange = (ts: number, r: Range) => {
 };
 
 export function PreviousBillsView({ bills }: { bills: Bill[] }) {
+  const { t } = useLang();
   const [range, setRange] = useState<Range>("today");
   const [selected, setSelected] = useState<Bill | null>(null);
 
@@ -27,15 +28,17 @@ export function PreviousBillsView({ bills }: { bills: Bill[] }) {
     [bills, range]
   );
 
+  const chips: [Range, string][] = [
+    ["today", t.today],
+    ["week", t.thisWeek],
+    ["month", t.thisMonth],
+    ["all", t.allTime],
+  ];
+
   return (
     <div className="px-4 pt-4 pb-10">
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        {([
-          ["today", "Today"],
-          ["week", "This Week"],
-          ["month", "This Month"],
-          ["all", "All Time"],
-        ] as [Range, string][]).map(([k, label]) => (
+        {chips.map(([k, label]) => (
           <button
             key={k}
             onClick={() => setRange(k)}
@@ -51,7 +54,7 @@ export function PreviousBillsView({ bills }: { bills: Bill[] }) {
         {filtered.length === 0 ? (
           <div className="qb-card p-10 text-center">
             <Receipt className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
-            <p className="text-sm text-muted-foreground">No bills in this period yet.</p>
+            <p className="text-sm text-muted-foreground">{t.noBillsYet}</p>
           </div>
         ) : (
           filtered.map((b, idx) => (
@@ -63,7 +66,7 @@ export function PreviousBillsView({ bills }: { bills: Bill[] }) {
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold">
-                  Bill #{filtered.length - idx}
+                  {t.billHash}{filtered.length - idx}
                   <span className="ml-2 text-xs text-muted-foreground font-medium font-mono">
                     {formatDateIN(b.ts)}
                   </span>
@@ -86,6 +89,7 @@ export function PreviousBillsView({ bills }: { bills: Bill[] }) {
 }
 
 function BillDetailSheet({ bill, onClose }: { bill: Bill | null; onClose: () => void }) {
+  const { t } = useLang();
   if (!bill) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end animate-fade-in">
@@ -94,7 +98,7 @@ function BillDetailSheet({ bill, onClose }: { bill: Bill | null; onClose: () => 
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground font-mono">{formatDateIN(bill.ts)}</p>
-            <h3 className="font-bold text-lg">Bill Details</h3>
+            <h3 className="font-bold text-lg">{t.billDetails}</h3>
           </div>
           <button
             onClick={onClose}
@@ -120,7 +124,7 @@ function BillDetailSheet({ bill, onClose }: { bill: Bill | null; onClose: () => 
         </div>
         <div className="bg-muted px-4 py-4 flex items-center justify-between rounded-b-3xl">
           <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Grand Total
+            {t.grandTotal}
           </span>
           <span className="font-mono text-xl font-bold">{formatINR(bill.total)}</span>
         </div>

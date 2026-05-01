@@ -4,6 +4,7 @@ import { InventoryItem, BillLine } from "@/lib/types";
 import { ItemThumb } from "./ItemThumb";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/context/LangContext";
 
 export function BillingView({
   inventory,
@@ -20,6 +21,7 @@ export function BillingView({
   onDec: (id: string) => void;
   onQtyEdit: (id: string) => void;
 }) {
+  const { t } = useLang();
   const [q, setQ] = useState("");
   const cartMap = useMemo(() => {
     const m = new Map<string, BillLine>();
@@ -40,7 +42,7 @@ export function BillingView({
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search items…"
+          placeholder={t.searchPlaceholder}
           className="w-full h-11 pl-10 pr-4 rounded-xl bg-card border border-border text-sm
                      focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
                      transition-shadow"
@@ -50,7 +52,7 @@ export function BillingView({
       {filtered.length === 0 ? (
         <div className="qb-card p-10 text-center">
           <p className="text-muted-foreground text-sm">
-            No items found{q ? ` for "${q}"` : ""}.
+            {q ? t.noItemsFoundFor(q) : `${t.noItemsFound}.`}
           </p>
         </div>
       ) : (
@@ -119,7 +121,7 @@ export function BillingView({
                     className="h-8 w-full rounded-lg bg-primary text-primary-foreground text-sm font-semibold
                                hover:bg-primary-hover active:scale-[0.97] transition flex items-center justify-center gap-1"
                   >
-                    <Plus className="h-4 w-4" /> Add
+                    <Plus className="h-4 w-4" /> {t.add}
                   </button>
                 )}
               </div>

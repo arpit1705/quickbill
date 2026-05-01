@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Bill } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { ItemThumb } from "./ItemThumb";
+import { useLang } from "@/context/LangContext";
 
 type Range = "today" | "week" | "month";
 
@@ -13,6 +14,7 @@ const inRange = (ts: number, r: Range) => {
 };
 
 export function ReportsView({ bills }: { bills: Bill[] }) {
+  const { t } = useLang();
   const [range, setRange] = useState<Range>("today");
 
   const filtered = useMemo(() => bills.filter((b) => inRange(b.ts, range)), [bills, range]);
@@ -21,7 +23,6 @@ export function ReportsView({ bills }: { bills: Bill[] }) {
   const avg = numBills ? totalSales / numBills : 0;
   const highest = filtered.reduce((m, b) => Math.max(m, b.total), 0);
 
-  // Last 7 days bar data
   const last7 = useMemo(() => {
     const days: { label: string; total: number; isToday: boolean }[] = [];
     const today = new Date();
@@ -45,7 +46,6 @@ export function ReportsView({ bills }: { bills: Bill[] }) {
 
   const maxBar = Math.max(1, ...last7.map((d) => d.total));
 
-  // Top selling items
   const topItems = useMemo(() => {
     const map = new Map<string, { name: string; img?: string; qty: number; revenue: number }>();
     filtered.forEach((b) =>
@@ -60,27 +60,31 @@ export function ReportsView({ bills }: { bills: Bill[] }) {
     return [...map.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
   }, [filtered]);
 
+  const chips: [Range, string][] = [
+    ["today", t.today],
+    ["week", t.thisWeek],
+    ["month", t.thisMonth],
+  ];
+
   return (
     <div className="px-4 pt-4 pb-10 space-y-5">
       <div className="flex gap-2">
-        {([["today", "Today"], ["week", "This Week"], ["month", "This Month"]] as [Range, string][]).map(
-          ([k, label]) => (
-            <button key={k} onClick={() => setRange(k)} className="qb-chip" data-active={range === k}>
-              {label}
-            </button>
-          )
-        )}
+        {chips.map(([k, label]) => (
+          <button key={k} onClick={() => setRange(k)} className="qb-chip" data-active={range === k}>
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Total Sales" value={formatINR(totalSales)} valueClass="text-success" />
-        <StatCard label="Number of Bills" value={String(numBills)} />
-        <StatCard label="Average Bill" value={formatINR(avg)} />
-        <StatCard label="Highest Bill" value={formatINR(highest)} />
+        <StatCard label={t.totalSales} value={formatINR(totalSales)} valueClass="text-success" />
+        <StatCard label={t.numberOfBills} value={String(numBills)} />
+        <StatCard label={t.averageBill} value={formatINR(avg)} />
+        <StatCard label={t.highestBill} value={formatINR(highest)} />
       </div>
 
       <div className="qb-card p-4">
-        <h3 className="text-sm font-bold mb-4">Daily Sales — Last 7 Days</h3>
+        <h3 className="text-sm font-bold mb-4">{t.dailySales}</h3>
         <div className="flex items-end gap-2 h-40">
           {last7.map((d, i) => {
             const h = Math.max(4, (d.total / maxBar) * 100);
@@ -106,11 +110,9 @@ export function ReportsView({ bills }: { bills: Bill[] }) {
       </div>
 
       <div className="qb-card p-4">
-        <h3 className="text-sm font-bold mb-3">Top Selling Items</h3>
+        <h3 className="text-sm font-bold mb-3">{t.topSellingItems}</h3>
         {topItems.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            No sales data for this period yet.
-          </p>
+          <p className="text-sm text-muted-foreground py-6 text-center">{t.noSalesData}</p>
         ) : (
           <div className="space-y-2">
             {topItems.map((it, idx) => (
@@ -119,7 +121,7 @@ export function ReportsView({ bills }: { bills: Bill[] }) {
                 <ItemThumb name={it.name} src={it.img} className="h-10 w-10" rounded="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{it.name}</p>
-                  <p className="text-xs text-muted-foreground font-mono">{it.qty} units sold</p>
+                  <p className="text-xs text-muted-foreground font-mono">{t.unitsSold(it.qty)}</p>
                 </div>
                 <span className="font-mono text-sm font-bold text-success">{formatINR(it.revenue)}</span>
               </div>

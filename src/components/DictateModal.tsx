@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, X } from "lucide-react";
 import { toast } from "sonner";
 import { InventoryItem } from "@/lib/types";
+import { useLang } from "@/context/LangContext";
 
 const GEMMA_API_KEY = import.meta.env.VITE_GEMMA_API_KEY as string;
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY as string;
@@ -17,6 +18,7 @@ export function DictateModal({
   inventory: InventoryItem[];
   onParsed: (matches: { item: InventoryItem; qty: number }[]) => void;
 }) {
+  const { t } = useLang();
   const [transcript, setTranscript] = useState("");
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -62,7 +64,7 @@ export function DictateModal({
       setStatus(null);
       mediaRecorder.start();
     } catch {
-      toast.error("Microphone access denied. Please allow microphone permissions.");
+      toast.error(t.micDenied);
     }
   };
 
@@ -75,7 +77,7 @@ export function DictateModal({
 
   const transcribeWithGroq = async (audioBlob: Blob) => {
     setTranscribing(true);
-    setStatus("Transcribing with Groq Whisper…");
+    setStatus(t.transcribingStatus);
     try {
       const formData = new FormData();
       formData.append("file", audioBlob, "recording.webm");
@@ -96,15 +98,15 @@ export function DictateModal({
       const text = data?.text?.trim() ?? "";
       if (text) {
         setTranscript(text);
-        setStatus("Transcription complete");
+        setStatus(t.transcriptionComplete);
       } else {
-        setStatus("No speech detected");
-        toast.error("Couldn't detect any speech. Try again.");
+        setStatus(t.noSpeechDetected);
+        toast.error(t.noSpeechError);
       }
     } catch (err) {
       console.error(err);
       setStatus(null);
-      toast.error("Transcription failed. Please try again or type your order.");
+      toast.error(t.transcriptionFailed);
     } finally {
       setTranscribing(false);
     }
@@ -113,7 +115,7 @@ export function DictateModal({
   const submit = async () => {
     if (!transcript.trim()) return;
     setSubmitting(true);
-    setStatus("Parsing…");
+    setStatus(t.parsing);
     try {
       const sys = `You extract grocery shop orders from a shopkeeper's voice command (may be in Hindi, Hinglish, or English).
 Available inventory items (with unit price) — you MUST use these exact names in your output:
@@ -178,17 +180,17 @@ Instructions:
       }
 
       if (matches.length === 0) {
-        setStatus("No matching items found");
-        toast.error("Couldn't match any items from your order.");
+        setStatus(t.noMatchingItems);
+        toast.error(t.noMatchError);
       } else {
-        setStatus(`Done — ${matches.length} item${matches.length === 1 ? "" : "s"} added`);
+        setStatus(t.doneAdded(matches.length));
         onParsed(matches);
         setTimeout(() => onClose(), 600);
       }
     } catch (err) {
       console.error(err);
       setStatus(null);
-      toast.error("Failed to parse order. Please try again.");
+      toast.error(t.parseError);
     } finally {
       setSubmitting(false);
     }
@@ -203,7 +205,7 @@ Instructions:
         <div className="mx-auto h-1.5 w-12 rounded-full bg-white/20 mb-4" />
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold flex items-center gap-2">
-            <Mic className="h-5 w-5" /> Voice Order
+            <Mic className="h-5 w-5" /> {t.voiceOrder}
           </h2>
           <button
             onClick={onClose}
@@ -214,24 +216,32 @@ Instructions:
           </button>
         </div>
 
-        <div className="flex justify-center my-5">
+        <div className="flex flex-col items-center gap-2 my-5">
           <button
             onClick={recording ? stopRec : startRec}
             disabled={transcribing}
+            style={recording ? { backgroundColor: "hsl(0 72% 50%)", transform: "scale(1.1)" } : undefined}
             className="relative h-20 w-20 rounded-full bg-primary text-primary-foreground grid place-items-center
-                       hover:bg-primary-hover active:scale-95 transition shadow-lg disabled:opacity-50"
+                       active:scale-95 transition-all duration-200 shadow-xl disabled:opacity-50"
             aria-label={recording ? "Stop recording" : "Start recording"}
           >
             {recording && <span className="pulse-ring" />}
-            {recording && <span className="pulse-ring delay" />}
-            <Mic className="h-8 w-8 relative" />
+            {recording && <span className="pulse-ring delay-1" />}
+            {recording && <span className="pulse-ring delay-2" />}
+            <Mic
+              className="h-8 w-8 relative"
+              style={recording ? { animation: "mic-breathe 1.2s ease-in-out infinite" } : undefined}
+            />
           </button>
+          <span className="text-xs font-semibold tracking-wide" style={{ color: recording ? "hsl(0 72% 65%)" : "rgba(255,255,255,0.45)" }}>
+            {recording ? t.tapToStop : t.tapToRecord}
+          </span>
         </div>
 
         <textarea
           value={transcript}
           onChange={(e) => setTranscript(e.target.value)}
-          placeholder={transcribing ? "Transcribing audio…" : "Your speech will appear here..."}
+          placeholder={transcribing ? t.transcribingPlaceholder : t.speechPlaceholder}
           rows={3}
           className="w-full bg-white/5 border border-white/20 rounded-xl p-3 text-sm text-white
                      placeholder:text-white/40 placeholder:italic focus:outline-none focus:border-primary
@@ -248,7 +258,7 @@ Instructions:
             className="flex-1 h-11 rounded-xl border border-white/30 text-white text-sm font-semibold
                        hover:bg-white/10 transition"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             onClick={submit}
@@ -256,7 +266,7 @@ Instructions:
             className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground text-sm font-bold
                        hover:bg-primary-hover disabled:opacity-50 transition"
           >
-            {submitting ? "Submitting…" : "Submit Order"}
+            {submitting ? t.submitting : t.submitOrder}
           </button>
         </div>
       </div>

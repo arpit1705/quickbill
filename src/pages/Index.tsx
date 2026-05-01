@@ -18,8 +18,10 @@ import {
   saveBill as dbSaveBill,
   migrateFromLocalStorage,
 } from "@/lib/db";
+import { useLang } from "@/context/LangContext";
 
 const Index = () => {
+  const { t } = useLang();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [cart, setCart] = useState<BillLine[]>([]);
@@ -39,9 +41,7 @@ const Index = () => {
       if (hasLocalData) {
         const result = await migrateFromLocalStorage();
         if (result.items > 0 || result.bills > 0) {
-          toast.success(
-            `Migrated ${result.items} items and ${result.bills} bills to cloud`
-          );
+          toast.success(t.migratedData(result.items, result.bills));
         }
       }
 
@@ -50,11 +50,11 @@ const Index = () => {
       setBills(dbBills.map(dbBillToBill));
     } catch (err) {
       console.error("Failed to load data:", err);
-      toast.error("Failed to load data");
+      toast.error(t.failedToLoad);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadData();
@@ -144,21 +144,21 @@ const Index = () => {
       });
 
       setCart([]);
-      toast.success(`Bill saved · ₹${total.toFixed(2)}`);
+      toast.success(t.billSaved(total.toFixed(2)));
 
       const [dbItems, dbBills] = await Promise.all([fetchItems(), fetchBills()]);
       setInventory(dbItems.map(dbItemToInventoryItem));
       setBills(dbBills.map(dbBillToBill));
     } catch (err) {
       console.error("Failed to save bill:", err);
-      toast.error("Failed to save bill");
+      toast.error(t.failedToSaveBill);
     }
   };
 
   const clearCart = () => {
     setCart([]);
     setConfirmClear(false);
-    toast.success("Bill cleared");
+    toast.success(t.billCleared);
   };
 
   const onParsedDictate = (matches: { item: InventoryItem; qty: number }[]) => {
@@ -194,7 +194,7 @@ const Index = () => {
         setInventory((cur) => [dbItemToInventoryItem(row), ...cur]);
       } catch (err) {
         console.error("Failed to add item:", err);
-        toast.error("Failed to add item");
+        toast.error(t.failedToAddItem);
       }
       return;
     }
@@ -223,7 +223,7 @@ const Index = () => {
         );
       } catch (err) {
         console.error("Failed to update item:", err);
-        toast.error("Failed to update item");
+        toast.error(t.failedToUpdateItem);
       }
       return;
     }
@@ -235,7 +235,7 @@ const Index = () => {
         setInventory((cur) => cur.filter((i) => i.id !== deleted.id));
       } catch (err) {
         console.error("Failed to delete item:", err);
-        toast.error("Failed to delete item");
+        toast.error(t.failedToDeleteItem);
       }
       return;
     }
@@ -248,7 +248,7 @@ const Index = () => {
       {loading ? (
         <div className="grid place-items-center pt-40">
           <p className="text-muted-foreground text-sm animate-pulse">
-            Loading your data…
+            {t.loadingData}
           </p>
         </div>
       ) : (
@@ -322,9 +322,9 @@ const Index = () => {
 
           {confirmClear && (
             <ConfirmDialog
-              title="Clear current bill?"
-              message="All items in this bill will be removed."
-              confirmLabel="Clear"
+              title={t.clearBillTitle}
+              message={t.clearBillMessage}
+              confirmLabel={t.clear}
               danger
               onCancel={() => setConfirmClear(false)}
               onConfirm={clearCart}

@@ -4,6 +4,7 @@ import { BillLine } from "@/lib/types";
 import { ItemThumb } from "./ItemThumb";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/context/LangContext";
 
 export function BillPanel({
   cart,
@@ -24,11 +25,12 @@ export function BillPanel({
   onDictate: () => void;
   onQtyEdit: (id: string) => void;
 }) {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const total = cart.reduce((s, l) => s + l.total, 0);
   const summary =
     cart.length === 0
-      ? "No items yet"
+      ? t.noItemsYet
       : cart.map((l) => l.name).join(", ");
 
   return (
@@ -40,7 +42,7 @@ export function BillPanel({
       >
         <div className="flex-1 min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-white/50 font-semibold">
-            Current bill • {cart.length} item{cart.length === 1 ? "" : "s"}
+            {t.currentBill} • {cart.length} {cart.length === 1 ? t.item : t.items}
           </p>
           <p className="text-xs text-white/70 truncate mt-0.5">{summary}</p>
         </div>
@@ -62,46 +64,52 @@ export function BillPanel({
           {cart.map((l) => (
             <div
               key={l.id}
-              className="flex items-center gap-3 bg-white/5 rounded-lg px-2.5 py-2"
+              className="flex items-center gap-2.5 bg-white/5 rounded-lg px-2.5 py-2"
             >
-              <ItemThumb name={l.name} src={l.imageDataUrl} className="h-9 w-9" rounded="sm" />
+              <ItemThumb name={l.name} src={l.imageDataUrl} className="h-9 w-9 shrink-0" rounded="sm" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{l.name}</p>
-                <p className="text-[11px] text-white/60 font-mono">
-                  {l.qty % 1 === 0 ? l.qty : parseFloat(l.qty.toFixed(4))} × ₹{l.price}/{l.unit}
-                </p>
+                <p className="text-sm font-medium leading-snug break-words line-clamp-2 pt-0.5">{l.name}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center bg-white/10 rounded-md overflow-hidden">
+                    <button
+                      onClick={() => onDec(l.id)}
+                      className="h-6 w-6 grid place-items-center hover:bg-white/10 active:scale-95 transition text-sm"
+                      aria-label="Decrease"
+                    >
+                      −
+                    </button>
+                    <span
+                      onClick={() => onQtyEdit(l.id)}
+                      className="w-7 text-center text-xs font-mono cursor-pointer hover:bg-white/10 rounded transition"
+                    >
+                      {l.qty % 1 === 0 ? l.qty : parseFloat(l.qty.toFixed(2))}
+                    </span>
+                    <button
+                      onClick={() => onInc(l.id)}
+                      className="h-6 w-6 grid place-items-center hover:bg-white/10 active:scale-95 transition text-sm"
+                      aria-label="Increase"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <span
+                    onClick={() => onQtyEdit(l.id)}
+                    className="font-mono text-xs text-white/60 cursor-pointer hover:bg-white/10 rounded px-1 transition"
+                  >
+                    ₹{l.price}/{l.unit}
+                  </span>
+                  <span
+                    onClick={() => onQtyEdit(l.id)}
+                    className="font-mono text-sm font-semibold ml-auto cursor-pointer hover:bg-white/10 rounded px-1 transition"
+                    style={{ color: "hsl(var(--brand-soft))" }}
+                  >
+                    {formatINR(l.total)}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center bg-white/10 rounded-md overflow-hidden">
-                <button
-                  onClick={() => onDec(l.id)}
-                  className="h-7 w-7 grid place-items-center hover:bg-white/10 active:scale-95 transition"
-                  aria-label="Decrease"
-                >
-                  −
-                </button>
-                <span
-                  onClick={() => onQtyEdit(l.id)}
-                  className="w-8 text-center text-sm font-mono cursor-pointer hover:bg-white/10 rounded transition"
-                >
-                  {l.qty % 1 === 0 ? l.qty : parseFloat(l.qty.toFixed(2))}
-                </span>
-                <button
-                  onClick={() => onInc(l.id)}
-                  className="h-7 w-7 grid place-items-center hover:bg-white/10 active:scale-95 transition"
-                  aria-label="Increase"
-                >
-                  +
-                </button>
-              </div>
-              <span
-                onClick={() => onQtyEdit(l.id)}
-                className="font-mono text-sm w-20 text-right cursor-pointer hover:bg-white/10 rounded px-1 transition"
-              >
-                {formatINR(l.total)}
-              </span>
               <button
                 onClick={() => onRemove(l.id)}
-                className="h-7 w-7 grid place-items-center text-white/60 hover:text-destructive transition"
+                className="h-7 w-7 shrink-0 grid place-items-center text-white/60 hover:text-destructive transition"
                 aria-label="Remove"
               >
                 <X className="h-4 w-4" />
@@ -117,7 +125,7 @@ export function BillPanel({
           className="h-11 px-3 rounded-xl border border-white/30 text-white text-sm font-semibold
                      hover:bg-white/10 active:scale-[0.97] transition flex items-center gap-1.5"
         >
-          <Mic className="h-4 w-4" /> Dictate
+          <Mic className="h-4 w-4" /> {t.dictate}
         </button>
         <button
           onClick={onClear}
@@ -126,7 +134,7 @@ export function BillPanel({
                      hover:bg-destructive/20 hover:text-destructive disabled:opacity-30 disabled:hover:bg-transparent
                      transition flex items-center gap-1.5"
         >
-          <Trash2 className="h-4 w-4" /> Clear
+          <Trash2 className="h-4 w-4" /> {t.clear}
         </button>
         <button
           onClick={onSave}
@@ -135,7 +143,7 @@ export function BillPanel({
                      hover:bg-primary-hover active:scale-[0.98] disabled:opacity-50
                      transition flex items-center justify-center gap-1.5 shadow-md"
         >
-          <Check className="h-4 w-4" /> Bill
+          <Check className="h-4 w-4" /> {t.bill}
         </button>
       </div>
     </div>
