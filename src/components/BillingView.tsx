@@ -19,7 +19,7 @@ export function BillingView({
   onAdd: (item: InventoryItem) => void;
   onInc: (id: string) => void;
   onDec: (id: string) => void;
-  onQtyEdit: (id: string) => void;
+  onQtyEdit: (id: string, mode?: "qty" | "price") => void;
 }) {
   const { t } = useLang();
   const [q, setQ] = useState("");

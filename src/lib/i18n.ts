@@ -112,6 +112,7 @@ export const translations = {
     parseError: "Failed to parse order. Please try again.",
     tapToRecord: "Tap to record",
     tapToStop: "Tap to stop",
+    clearTranscript: "Clear",
 
     // Index / loading
     loadingData: "Loading your data…",
@@ -239,6 +240,7 @@ export const translations = {
     parseError: "ऑर्डर समझ नहीं आया। फिर कोशिश करें।",
     tapToRecord: "रिकॉर्ड करने के लिए टैप करें",
     tapToStop: "रोकने के लिए टैप करें",
+    clearTranscript: "साफ करें",
 
     // Index / loading
     loadingData: "डेटा लोड हो रहा है…",

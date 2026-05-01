@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Mic, X } from "lucide-react";
+import { Mic, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { InventoryItem } from "@/lib/types";
 import { useLang } from "@/context/LangContext";
@@ -238,15 +238,29 @@ Instructions:
           </span>
         </div>
 
-        <textarea
-          value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
-          placeholder={transcribing ? t.transcribingPlaceholder : t.speechPlaceholder}
-          rows={3}
-          className="w-full bg-white/5 border border-white/20 rounded-xl p-3 text-sm text-white
-                     placeholder:text-white/40 placeholder:italic focus:outline-none focus:border-primary
-                     resize-none"
-        />
+        <div className="relative">
+          <textarea
+            value={transcript}
+            onChange={(e) => setTranscript(e.target.value)}
+            placeholder={transcribing ? t.transcribingPlaceholder : t.speechPlaceholder}
+            rows={3}
+            className="w-full bg-white/5 border border-white/20 rounded-xl p-3 text-sm text-white
+                       placeholder:text-white/40 placeholder:italic focus:outline-none focus:border-primary
+                       resize-none"
+          />
+          {transcript && !transcribing && !submitting && (
+            <button
+              onClick={() => { setTranscript(""); setStatus(null); }}
+              className="absolute top-2 right-2 h-6 px-2 rounded-md bg-white/10 hover:bg-white/20
+                         text-white/60 hover:text-white text-xs font-medium transition
+                         flex items-center gap-1"
+              aria-label="Clear transcript"
+            >
+              <Trash2 className="h-3 w-3" />
+              {t.clearTranscript}
+            </button>
+          )}
+        </div>
 
         <div className="h-5 mt-2 text-xs font-medium" style={{ color: "hsl(var(--brand-soft))" }}>
           {status ?? ""}

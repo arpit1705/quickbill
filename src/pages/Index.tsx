@@ -29,7 +29,7 @@ const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dictateOpen, setDictateOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
-  const [qtyEditTarget, setQtyEditTarget] = useState<BillLine | null>(null);
+  const [qtyEditTarget, setQtyEditTarget] = useState<{ line: BillLine; mode: "qty" | "price" } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
@@ -120,9 +120,9 @@ const Index = () => {
         : prev.map((l) => (l.id === id ? { ...l, qty, total: qty * l.price } : l))
     );
 
-  const openQtyEdit = (id: string) => {
+  const openQtyEdit = (id: string, mode: "qty" | "price" = "qty") => {
     const line = cart.find((l) => l.id === id);
-    if (line) setQtyEditTarget(line);
+    if (line) setQtyEditTarget({ line, mode });
   };
 
   const saveBill = async () => {
@@ -311,11 +311,12 @@ const Index = () => {
           {qtyEditTarget && (
             <QtyEditModal
               open={!!qtyEditTarget}
-              name={qtyEditTarget.name}
-              unit={qtyEditTarget.unit}
-              unitPrice={qtyEditTarget.price}
-              currentQty={qtyEditTarget.qty}
-              onSave={(qty) => setQty(qtyEditTarget.id, qty)}
+              name={qtyEditTarget.line.name}
+              unit={qtyEditTarget.line.unit}
+              unitPrice={qtyEditTarget.line.price}
+              currentQty={qtyEditTarget.line.qty}
+              initialMode={qtyEditTarget.mode}
+              onSave={(qty) => setQty(qtyEditTarget.line.id, qty)}
               onClose={() => setQtyEditTarget(null)}
             />
           )}
