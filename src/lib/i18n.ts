@@ -110,6 +110,8 @@ export const translations = {
     transcriptionFailed: "Transcription failed. Please try again or type your order.",
     noMatchError: "Couldn't match any items from your order.",
     parseError: "Failed to parse order. Please try again.",
+    tapToRecord: "Tap to record",
+    tapToStop: "Tap to stop",
 
     // Index / loading
     loadingData: "Loading your data…",
@@ -235,6 +237,8 @@ export const translations = {
     transcriptionFailed: "लिखाई नहीं हुई। फिर कोशिश करें या टाइप करें।",
     noMatchError: "ऑर्डर में कोई सामान नहीं मिला।",
     parseError: "ऑर्डर समझ नहीं आया। फिर कोशिश करें।",
+    tapToRecord: "रिकॉर्ड करने के लिए टैप करें",
+    tapToStop: "रोकने के लिए टैप करें",
 
     // Index / loading
     loadingData: "डेटा लोड हो रहा है…",

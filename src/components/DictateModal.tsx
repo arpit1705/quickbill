@@ -216,18 +216,26 @@ Instructions:
           </button>
         </div>
 
-        <div className="flex justify-center my-5">
+        <div className="flex flex-col items-center gap-2 my-5">
           <button
             onClick={recording ? stopRec : startRec}
             disabled={transcribing}
+            style={recording ? { backgroundColor: "hsl(0 72% 50%)", transform: "scale(1.1)" } : undefined}
             className="relative h-20 w-20 rounded-full bg-primary text-primary-foreground grid place-items-center
-                       hover:bg-primary-hover active:scale-95 transition shadow-lg disabled:opacity-50"
+                       active:scale-95 transition-all duration-200 shadow-xl disabled:opacity-50"
             aria-label={recording ? "Stop recording" : "Start recording"}
           >
             {recording && <span className="pulse-ring" />}
-            {recording && <span className="pulse-ring delay" />}
-            <Mic className="h-8 w-8 relative" />
+            {recording && <span className="pulse-ring delay-1" />}
+            {recording && <span className="pulse-ring delay-2" />}
+            <Mic
+              className="h-8 w-8 relative"
+              style={recording ? { animation: "mic-breathe 1.2s ease-in-out infinite" } : undefined}
+            />
           </button>
+          <span className="text-xs font-semibold tracking-wide" style={{ color: recording ? "hsl(0 72% 65%)" : "rgba(255,255,255,0.45)" }}>
+            {recording ? t.tapToStop : t.tapToRecord}
+          </span>
         </div>
 
         <textarea
