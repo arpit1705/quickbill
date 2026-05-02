@@ -9,6 +9,7 @@ interface QtyEditModalProps {
   unit: string;
   unitPrice: number;
   currentQty: number;
+  initialMode?: "qty" | "price";
   onSave: (qty: number) => void;
   onClose: () => void;
 }
@@ -19,6 +20,7 @@ export function QtyEditModal({
   unit,
   unitPrice,
   currentQty,
+  initialMode = "qty",
   onSave,
   onClose,
 }: QtyEditModalProps) {
@@ -30,7 +32,7 @@ export function QtyEditModal({
 
   useEffect(() => {
     if (open) {
-      setMode("qty");
+      setMode(initialMode);
       setQtyStr(currentQty.toString());
       setPriceStr((currentQty * unitPrice).toFixed(2));
       setTimeout(() => {
@@ -38,7 +40,7 @@ export function QtyEditModal({
         inputRef.current?.select();
       }, 50);
     }
-  }, [open, currentQty, unitPrice]);
+  }, [open, currentQty, unitPrice, initialMode]);
 
   if (!open) return null;
 

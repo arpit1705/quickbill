@@ -23,7 +23,7 @@ export function BillPanel({
   onClear: () => void;
   onSave: () => void;
   onDictate: () => void;
-  onQtyEdit: (id: string) => void;
+  onQtyEdit: (id: string, mode?: "qty" | "price") => void;
 }) {
   const { t } = useLang();
   const [open, setOpen] = useState(false);
@@ -93,13 +93,13 @@ export function BillPanel({
                     </button>
                   </div>
                   <span
-                    onClick={() => onQtyEdit(l.id)}
+                    onClick={() => onQtyEdit(l.id, "qty")}
                     className="font-mono text-xs text-white/60 cursor-pointer hover:bg-white/10 rounded px-1 transition"
                   >
                     ₹{l.price}/{l.unit}
                   </span>
                   <span
-                    onClick={() => onQtyEdit(l.id)}
+                    onClick={() => onQtyEdit(l.id, "price")}
                     className="font-mono text-sm font-semibold ml-auto cursor-pointer hover:bg-white/10 rounded px-1 transition"
                     style={{ color: "hsl(var(--brand-soft))" }}
                   >
