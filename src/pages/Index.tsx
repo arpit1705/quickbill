@@ -158,7 +158,6 @@ const Index = () => {
   const clearCart = () => {
     setCart([]);
     setConfirmClear(false);
-    toast.success(t.billCleared);
   };
 
   const onParsedDictate = (matches: { item: InventoryItem; qty: number }[]) => {
